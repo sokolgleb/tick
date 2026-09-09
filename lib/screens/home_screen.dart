@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tick/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../core/preferences.dart';
 import '../providers/activities_provider.dart';
+import '../providers/preferences_provider.dart';
 import '../providers/time_entries_provider.dart';
 import '../widgets/activity_tile.dart';
+import '../widgets/activity_grid_tile.dart';
 import '../widgets/add_activity_dialog.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -11,13 +15,23 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
     final activitiesAsync = ref.watch(activitiesProvider);
     final totalsAsync = ref.watch(todayTotalsProvider);
+    final viewMode = ref.watch(viewModeProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tick'),
+        title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            icon: Icon(viewMode == ViewMode.list ? Icons.grid_view : Icons.view_list),
+            onPressed: () {
+              final next = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
+              ref.read(viewModeProvider.notifier).set(next);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/settings'),
@@ -29,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 600),
           child: activitiesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Center(child: Text('Error: $err')),
+            error: (err, _) => Center(child: Text(l10n.error(err.toString()))),
             data: (activities) {
               final totals = totalsAsync.valueOrNull ?? {};
               return Column(
@@ -37,12 +51,10 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   if (activities.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(left: 20, top: 8, bottom: 4),
+                      padding: const EdgeInsets.only(left: 20, top: 4, bottom: 2),
                       child: Text(
-                        'Today',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                        l10n.today,
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                       ),
                     ),
                   Expanded(
@@ -52,17 +64,14 @@ class HomeScreen extends ConsumerWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'No activities yet',
-                                  style: Theme.of(context).textTheme.bodyLarge,
+                                  l10n.noActivitiesYet,
+                                  style: theme.textTheme.bodyLarge,
                                 ),
                                 const SizedBox(height: 16),
-                                FilledButton.icon(
+                                TextButton.icon(
                                   onPressed: () => _showAddDialog(context, ref),
                                   icon: const Icon(Icons.add),
-                                  label: const Text('New Activity'),
-                                  style: FilledButton.styleFrom(
-                                    minimumSize: const Size(200, 48),
-                                  ),
+                                  label: Text(l10n.newActivity),
                                 ),
                               ],
                             ),
@@ -72,31 +81,20 @@ class HomeScreen extends ConsumerWidget {
                               ref.invalidate(activitiesProvider);
                               ref.invalidate(todayTotalsProvider);
                             },
-                            child: ListView.separated(
-                              padding: EdgeInsets.zero,
-                              itemCount: activities.length,
-                              separatorBuilder: (_, __) => const Divider(indent: 48),
-                              itemBuilder: (context, index) {
-                                final activity = activities[index];
-                                return ActivityTile(
-                                  activity: activity,
-                                  todayMinutes: totals[activity.id] ?? 0,
-                                  onTap: () => context.push('/activity/${activity.id}'),
-                                  onLongPress: () => _showOptions(context, ref, activity),
-                                );
-                              },
-                            ),
+                            child: viewMode == ViewMode.list
+                                ? _buildList(context, ref, activities, totals)
+                                : _buildGrid(context, ref, activities, totals),
                           ),
                   ),
                   if (activities.isNotEmpty)
                     SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         child: Center(
                           child: TextButton.icon(
                             onPressed: () => _showAddDialog(context, ref),
-                            icon: const Icon(Icons.add),
-                            label: const Text('New Activity'),
+                            icon: const Icon(Icons.add, size: 18),
+                            label: Text(l10n.newActivity),
                           ),
                         ),
                       ),
@@ -107,6 +105,45 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildList(BuildContext context, WidgetRef ref, List activities, Map<String, ({double time, double count})> totals) {
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: activities.length,
+      separatorBuilder: (_, __) => Divider(indent: 36, endIndent: 20),
+      itemBuilder: (context, index) {
+        final activity = activities[index];
+        return ActivityTile(
+          activity: activity,
+          todayTotal: totals[activity.id] ?? (time: 0.0, count: 0.0),
+          onTap: () => context.push('/activity/${activity.id}'),
+          onLongPress: () => _showOptions(context, ref, activity),
+        );
+      },
+    );
+  }
+
+  Widget _buildGrid(BuildContext context, WidgetRef ref, List activities, Map<String, ({double time, double count})> totals) {
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 1.4,
+      ),
+      itemCount: activities.length,
+      itemBuilder: (context, index) {
+        final activity = activities[index];
+        return ActivityGridTile(
+          activity: activity,
+          todayTotal: totals[activity.id] ?? (time: 0.0, count: 0.0),
+          onTap: () => context.push('/activity/${activity.id}'),
+          onLongPress: () => _showOptions(context, ref, activity),
+        );
+      },
     );
   }
 
@@ -125,6 +162,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   void _showOptions(BuildContext context, WidgetRef ref, activity) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
+
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -132,8 +172,8 @@ class HomeScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.edit),
-              title: const Text('Edit'),
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.edit),
               onTap: () async {
                 Navigator.pop(ctx);
                 final result = await showDialog<Map<String, String>>(
@@ -154,7 +194,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.archive_outlined),
-              title: const Text('Archive'),
+              title: Text(l10n.archive),
               onTap: () async {
                 Navigator.pop(ctx);
                 await ref.read(activitiesProvider.notifier).updateActivity(
@@ -165,24 +205,26 @@ class HomeScreen extends ConsumerWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: Colors.red),
-              title: const Text('Delete', style: TextStyle(color: Colors.red)),
+              leading: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+              title: Text(l10n.delete, style: TextStyle(color: theme.colorScheme.error)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Delete activity?'),
-                    content: const Text('This will also delete all time entries for this activity.'),
+                    title: Text(l10n.deleteActivity),
+                    content: Text(l10n.deleteActivityConfirm),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('Cancel'),
+                        child: Text(l10n.cancel),
                       ),
-                      FilledButton(
+                      TextButton(
                         onPressed: () => Navigator.pop(ctx, true),
-                        style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('Delete'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                        ),
+                        child: Text(l10n.delete),
                       ),
                     ],
                   ),

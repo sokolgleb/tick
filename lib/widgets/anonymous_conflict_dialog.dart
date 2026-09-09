@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tick/l10n/app_localizations.dart';
 
 class AnonymousConflictDialog extends StatelessWidget {
   final int activityCount;
@@ -10,23 +11,21 @@ class AnonymousConflictDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
     return AlertDialog(
-      title: const Text('Account already exists'),
-      content: Text(
-        'Your current data ($activityCount ${activityCount == 1 ? "activity" : "activities"}) '
-        'will be deleted when you sign in to the existing account.',
-      ),
+      title: Text(l10n.accountConflictTitle),
+      content: Text(l10n.accountConflictMessage(activityCount)),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
-        FilledButton(
+        TextButton(
           onPressed: () => Navigator.of(context).pop(true),
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.red,
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.error,
           ),
-          child: const Text('Sign in anyway'),
+          child: Text(l10n.signInAnyway),
         ),
       ],
     );

@@ -4,37 +4,41 @@ import '../models/activity.dart';
 
 class ActivityTile extends StatelessWidget {
   final Activity activity;
-  final int todayMinutes;
+  final ({double time, double count}) todayTotal;
+  final bool hasChildren;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
   const ActivityTile({
     super.key,
     required this.activity,
-    required this.todayMinutes,
+    required this.todayTotal,
+    this.hasChildren = false,
     required this.onTap,
     required this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(activity.color);
+    final color = parseHexColor(activity.color);
+
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
             Container(
-              width: 12,
-              height: 12,
+              width: 2,
+              height: 32,
+              margin: const EdgeInsets.only(left: 20),
               decoration: BoxDecoration(
                 color: color,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(1),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 activity.name,
@@ -42,19 +46,22 @@ class ActivityTile extends StatelessWidget {
               ),
             ),
             Text(
-              todayMinutes.toTimeString(),
+              formatDualValue(context, todayTotal.time, todayTotal.count),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
+            if (hasChildren)
+              Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            const SizedBox(width: 20),
           ],
         ),
       ),
     );
-  }
-
-  Color _parseColor(String hex) {
-    final buffer = StringBuffer();
-    if (hex.length == 7) buffer.write('FF');
-    buffer.write(hex.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
   }
 }

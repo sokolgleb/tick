@@ -1,0 +1,122 @@
+{
+  "@@locale": "en",
+  "appTitle": "Tick",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "dateFormat": "{date}",
+  "@dateFormat": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "noActivitiesYet": "No activities yet",
+  "newActivity": "New Activity",
+  "editActivity": "Edit Activity",
+  "edit": "Edit",
+  "archive": "Archive",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+  "create": "Create",
+  "add": "Add",
+  "logTime": "Log Time",
+  "logCount": "Log Count",
+  "history": "History",
+  "noEntriesYet": "No entries yet",
+  "settings": "Settings",
+  "account": "Account",
+  "appearance": "Appearance",
+  "language": "Language",
+  "theme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
+  "viewMode": "View Mode",
+  "viewList": "List",
+  "viewGrid": "Grid",
+  "signIn": "Sign in",
+  "signUp": "Sign up",
+  "signOut": "Sign out",
+  "signInWithGoogle": "Sign in with Google",
+  "signInAnyway": "Sign in anyway",
+  "linkAccount": "Link Account",
+  "anonymousAccount": "Anonymous account",
+  "linkAccountHint": "Link an account to keep your data across devices",
+  "signedIn": "Signed in",
+  "email": "Email",
+  "password": "Password",
+  "or": "or",
+  "trackYourTime": "Track your time, simply.",
+  "allTime": "All time",
+  "thisWeek": "This week",
+  "thisMonth": "This month",
+  "thisYear": "This year",
+  "custom": "Custom",
+  "sortByDate": "By date",
+  "sortByValueAsc": "Value (low to high)",
+  "sortByValueDesc": "Value (high to low)",
+  "summary": "Summary",
+  "subActivities": "Sub-activities",
+  "addSubActivity": "Add sub-activity",
+  "time": "Time",
+  "count": "Count",
+  "hoursMinutes": "{hours}h {minutes}m",
+  "@hoursMinutes": {
+    "placeholders": {
+      "hours": { "type": "int" },
+      "minutes": { "type": "int" }
+    }
+  },
+  "minutesOnly": "{minutes}m",
+  "@minutesOnly": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "hoursOnly": "{hours}h",
+  "@hoursOnly": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "zeroMinutes": "0m",
+  "countFormat": "{count}x",
+  "@countFormat": {
+    "placeholders": {
+      "count": { "type": "String" }
+    }
+  },
+  "customDuration": "Custom Duration",
+  "customCount": "Custom Count",
+  "minutes": "min",
+  "deleteActivity": "Delete activity?",
+  "deleteActivityConfirm": "This will also delete all entries for this activity.",
+  "signOutConfirm": "Sign out?",
+  "accountConflictTitle": "Account already exists",
+  "accountConflictMessage": "Your current data ({count} {count, plural, =1{activity} other{activities}}) will be deleted when you sign in to the existing account.",
+  "@accountConflictMessage": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "logged": "Logged {value}",
+  "@logged": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "error": "Error: {message}",
+  "@error": {
+    "placeholders": {
+      "message": { "type": "String" }
+    }
+  },
+  "color": "Color",
+  "trackingType": "Tracking type",
+  "parentActivity": "Parent: {name}",
+  "@parentActivity": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  }
+}

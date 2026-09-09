@@ -5,6 +5,7 @@ class Activity {
   final String color;
   final int position;
   final bool archived;
+  final String? parentId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -15,6 +16,7 @@ class Activity {
     required this.color,
     required this.position,
     required this.archived,
+    this.parentId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -27,6 +29,7 @@ class Activity {
       color: json['color'] as String,
       position: json['position'] as int,
       archived: json['archived'] as bool,
+      parentId: json['parent_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -40,6 +43,7 @@ class Activity {
       'color': color,
       'position': position,
       'archived': archived,
+      if (parentId != null) 'parent_id': parentId,
     };
   }
 
@@ -48,6 +52,7 @@ class Activity {
     String? color,
     int? position,
     bool? archived,
+    String? parentId,
   }) {
     return Activity(
       id: id,
@@ -56,8 +61,11 @@ class Activity {
       color: color ?? this.color,
       position: position ?? this.position,
       archived: archived ?? this.archived,
+      parentId: parentId ?? this.parentId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
   }
+
+  bool get hasParent => parentId != null;
 }

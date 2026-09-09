@@ -1,79 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tick/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../core/preferences.dart';
 import '../providers/auth_provider.dart';
 import '../providers/activities_provider.dart';
+import '../providers/preferences_provider.dart';
 import '../providers/time_entries_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  static const _supportedLocales = [
+    (null, 'System'),
+    (Locale('en'), 'English'),
+    (Locale('ru'), 'Русский'),
+    (Locale('it'), 'Italiano'),
+    (Locale('tr'), 'Türkçe'),
+    (Locale('es'), 'Español'),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
     final authRepo = ref.watch(authRepositoryProvider);
     final user = authRepo.currentUser;
     final isAnonymous = authRepo.isAnonymous;
+    final themeMode = ref.watch(themeModeProvider);
+    final viewMode = ref.watch(viewModeProvider);
+    final locale = ref.watch(localeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              Text('Account', style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 16),
+              // Account
+              Text(l10n.account, style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(12),
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          isAnonymous ? Icons.person_outline : Icons.person,
-                          color: const Color(0xFF6B7280),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isAnonymous
-                                    ? 'Anonymous account'
-                                    : (user?.email ?? 'Signed in'),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              if (isAnonymous)
-                                Text(
-                                  'Link an account to keep your data across devices',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                            ],
+                    Icon(
+                      isAnonymous ? Icons.person_outline : Icons.person,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isAnonymous
+                                ? l10n.anonymousAccount
+                                : (user?.email ?? l10n.signedIn),
+                            style: theme.textTheme.titleMedium,
                           ),
-                        ),
-                      ],
+                          if (isAnonymous)
+                            Text(
+                              l10n.linkAccountHint,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               if (isAnonymous)
                 FilledButton(
                   onPressed: () => context.push('/auth'),
-                  child: const Text('Link Account'),
+                  child: Text(l10n.linkAccount),
                 )
               else
                 OutlinedButton(
                   onPressed: () => _signOut(context, ref),
-                  child: const Text('Sign Out'),
+                  child: Text(l10n.signOut),
                 ),
+
+              const SizedBox(height: 28),
+
+              // Appearance
+              Text(l10n.appearance, style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 12),
+
+              // Theme
+              _SettingsRow(
+                label: l10n.theme,
+                child: SegmentedButton<ThemeMode>(
+                  segments: [
+                    ButtonSegment(value: ThemeMode.system, label: Text(l10n.themeSystem)),
+                    ButtonSegment(value: ThemeMode.light, label: Text(l10n.themeLight)),
+                    ButtonSegment(value: ThemeMode.dark, label: Text(l10n.themeDark)),
+                  ],
+                  selected: {themeMode},
+                  onSelectionChanged: (set) =>
+                      ref.read(themeModeProvider.notifier).set(set.first),
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // View mode
+              _SettingsRow(
+                label: l10n.viewMode,
+                child: SegmentedButton<ViewMode>(
+                  segments: [
+                    ButtonSegment(value: ViewMode.list, label: Text(l10n.viewList)),
+                    ButtonSegment(value: ViewMode.grid, label: Text(l10n.viewGrid)),
+                  ],
+                  selected: {viewMode},
+                  onSelectionChanged: (set) =>
+                      ref.read(viewModeProvider.notifier).set(set.first),
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // Language
+              Text(l10n.language, style: theme.textTheme.headlineSmall),
+              const SizedBox(height: 12),
+              ..._supportedLocales.map((entry) {
+                final (loc, label) = entry;
+                final isSelected = loc?.languageCode == locale?.languageCode;
+                final isSystem = loc == null && locale == null;
+                final selected = isSelected || isSystem;
+
+                return InkWell(
+                  onTap: () => ref.read(localeProvider.notifier).set(loc),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(label, style: theme.textTheme.titleMedium)),
+                        if (selected)
+                          Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -82,18 +166,19 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   void _signOut(BuildContext context, WidgetRef ref) async {
+    final l10n = S.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sign out?'),
+        title: Text(l10n.signOutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
-          FilledButton(
+          TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sign out'),
+            child: Text(l10n.signOut),
           ),
         ],
       ),
@@ -105,5 +190,23 @@ class SettingsScreen extends ConsumerWidget {
       ref.invalidate(todayTotalsProvider);
       if (context.mounted) context.go('/');
     }
+  }
+}
+
+class _SettingsRow extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _SettingsRow({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.titleMedium),
+        child,
+      ],
+    );
   }
 }

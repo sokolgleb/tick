@@ -7,6 +7,7 @@ final activitiesRepositoryProvider = Provider<ActivitiesRepository>(
   (ref) => ActivitiesRepository(ref.watch(supabaseClientProvider)),
 );
 
+/// Top-level activities (no parent)
 final activitiesProvider = AsyncNotifierProvider<ActivitiesNotifier, List<Activity>>(
   ActivitiesNotifier.new,
 );
@@ -22,8 +23,16 @@ class ActivitiesNotifier extends AsyncNotifier<List<Activity>> {
     state = await AsyncValue.guard(() => ref.read(activitiesRepositoryProvider).getActivities());
   }
 
-  Future<void> create({required String name, required String color}) async {
-    await ref.read(activitiesRepositoryProvider).create(name: name, color: color);
+  Future<void> create({
+    required String name,
+    required String color,
+    String? parentId,
+  }) async {
+    await ref.read(activitiesRepositoryProvider).create(
+          name: name,
+          color: color,
+          parentId: parentId,
+        );
     await refresh();
   }
 
@@ -37,3 +46,13 @@ class ActivitiesNotifier extends AsyncNotifier<List<Activity>> {
     await refresh();
   }
 }
+
+/// Child activities for a given parent
+final childActivitiesProvider = FutureProvider.family<List<Activity>, String>((ref, parentId) {
+  return ref.watch(activitiesRepositoryProvider).getChildren(parentId);
+});
+
+/// Single activity by ID
+final activityProvider = FutureProvider.family<Activity?, String>((ref, id) {
+  return ref.watch(activitiesRepositoryProvider).getActivityById(id);
+});

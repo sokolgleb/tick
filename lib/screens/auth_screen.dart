@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tick/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../providers/activities_provider.dart';
@@ -28,6 +29,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -36,45 +40,45 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              Text('Tick', style: Theme.of(context).textTheme.headlineLarge),
-              const SizedBox(height: 8),
-              Text(
-                'Track your time, simply.',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 40),
-              FilledButton.icon(
+              Text(l10n.appTitle, style: theme.textTheme.headlineLarge),
+              const SizedBox(height: 6),
+              Text(l10n.trackYourTime, style: theme.textTheme.bodyLarge),
+              const SizedBox(height: 32),
+              OutlinedButton.icon(
                 onPressed: _loading ? null : _signInWithGoogle,
-                icon: const Icon(Icons.login),
-                label: const Text('Sign in with Google'),
+                icon: const Icon(Icons.login, size: 18),
+                label: Text(l10n.signInWithGoogle),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   const Expanded(child: Divider()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('or', style: Theme.of(context).textTheme.bodyMedium),
+                    child: Text(l10n.or, style: theme.textTheme.bodyMedium),
                   ),
                   const Expanded(child: Divider()),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(hintText: 'Email'),
+                decoration: InputDecoration(hintText: l10n.email),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
-                decoration: const InputDecoration(hintText: 'Password'),
+                decoration: InputDecoration(hintText: l10n.password),
                 onSubmitted: (_) => _signInWithEmail(),
               ),
               const SizedBox(height: 16),
               if (_error != null) ...[
-                Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 14)),
+                Text(
+                  _error!,
+                  style: TextStyle(color: theme.colorScheme.error, fontSize: 14),
+                ),
                 const SizedBox(height: 12),
               ],
               Row(
@@ -82,14 +86,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _loading ? null : _signUpWithEmail,
-                      child: const Text('Sign up'),
+                      child: Text(l10n.signUp),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
                       onPressed: _loading ? null : _signInWithEmail,
-                      child: const Text('Sign in'),
+                      child: Text(l10n.signIn),
                     ),
                   ),
                 ],
