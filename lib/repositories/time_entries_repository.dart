@@ -132,6 +132,21 @@ class TimeEntriesRepository {
     return TimeEntry.fromJson(data);
   }
 
+  Future<TimeEntry> updateEntry(
+    String id, {
+    double? timeMinutes,
+    double? countValue,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (timeMinutes != null) {
+      updates['value'] = timeMinutes;
+      updates['duration_minutes'] = timeMinutes.toInt();
+    }
+    if (countValue != null) updates['count_value'] = countValue;
+    final data = await _client.from('time_entries').update(updates).eq('id', id).select().single();
+    return TimeEntry.fromJson(data);
+  }
+
   Future<void> deleteEntry(String id) async {
     await _client.from('time_entries').delete().eq('id', id);
   }

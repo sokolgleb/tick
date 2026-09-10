@@ -47,4 +47,11 @@ class AppPreferences {
   Future<void> setViewMode(ViewMode mode) async {
     await _prefs.setString('view_mode', mode == ViewMode.grid ? 'grid' : 'list');
   }
+
+  // Colored grid
+  bool get coloredGrid => _prefs.getBool('colored_grid') ?? false;
+
+  Future<void> setColoredGrid(bool value) async {
+    await _prefs.setBool('colored_grid', value);
+  }
 }

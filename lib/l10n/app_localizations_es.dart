@@ -254,6 +254,21 @@ class SEs extends S {
   }
 
   @override
+  String get editEntry => 'Editar entrada';
+
+  @override
+  String get archiveActivity => '¿Archivar actividad?';
+
+  @override
+  String get archiveActivityConfirm =>
+      'La actividad se ocultará. Tus datos se conservarán.';
+
+  @override
+  String updated(String value) {
+    return 'Actualizado: $value';
+  }
+
+  @override
   String activityCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -263,4 +278,16 @@ class SEs extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get coloredGrid => 'Cuadrícula con color';
+
+  @override
+  String get seconds => 'seg';
+
+  @override
+  String get hours => 'hr';
+
+  @override
+  String get days => 'día';
 }

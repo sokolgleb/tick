@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/extensions.dart';
 import '../models/entry_sort.dart';
 import '../models/stat_period.dart';
+import '../models/time_entry.dart';
 import '../providers/activities_provider.dart';
 import '../providers/time_entries_provider.dart';
 import '../widgets/add_activity_dialog.dart';
@@ -25,7 +26,6 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
   DateTimeRange? _customRange;
   StatPeriod _statsPeriod = StatPeriod.allTime;
   bool _historyExpanded = false;
-  bool _presetsExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +44,25 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
 
     final activity = activityAsync.valueOrNull;
     final ancestors = ancestorsAsync.valueOrNull ?? [];
+    final cardColor = theme.colorScheme.surfaceContainerHighest;
+    final cardRadius = BorderRadius.circular(10);
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: false,
         title: _buildBreadcrumb(context, l10n, theme, ancestors, activity),
+        actions: [
+          if (activity != null) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              onPressed: () => _editActivity(context, activity),
+            ),
+            IconButton(
+              icon: const Icon(Icons.archive_outlined, size: 20),
+              onPressed: () => _archiveActivity(context, l10n, activity),
+            ),
+          ],
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -57,48 +71,64 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
             children: [
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   children: [
-                    // 1. Compact log input
-                    if (activity != null) _buildCompactLog(context, l10n, theme),
+                    // 1. Log input
+                    if (activity != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: cardColor, borderRadius: cardRadius),
+                        child: _buildLogButtons(context, l10n, theme),
+                      ),
 
-                    const Divider(height: 32),
+                    const SizedBox(height: 12),
 
-                    // 2. Children
+                    // 2. Stats
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: cardColor, borderRadius: cardRadius),
+                      child: statsAsync.when(
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                        error: (err, _) => Text(l10n.error(err.toString())),
+                        data: (stats) {
+                          final value = stats[_statsPeriod] ?? (time: 0.0, count: 0.0);
+                          return _buildStatsSection(context, l10n, theme, value);
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // 3. Children
                     childrenAsync.when(
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
                       data: (children) {
                         if (children.isEmpty) return const SizedBox.shrink();
                         final totals = totalsAsync.valueOrNull ?? {};
-                        return Column(
-                          children: [
-                            ChildActivitiesList(
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(color: cardColor, borderRadius: cardRadius),
+                            child: ChildActivitiesList(
                               children: children,
                               totals: totals,
                               onTap: (child) => context.push('/activity/${child.id}'),
                             ),
-                            const Divider(height: 32),
-                          ],
+                          ),
                         );
                       },
                     ),
 
-                    // 3. Stats with dropdown period
-                    statsAsync.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, _) => Text(l10n.error(err.toString())),
-                      data: (stats) {
-                        if (activity == null) return const SizedBox.shrink();
-                        final value = stats[_statsPeriod] ?? (time: 0.0, count: 0.0);
-                        return _buildStatsSection(context, l10n, theme, value);
-                      },
+                    // 4. History
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(color: cardColor, borderRadius: cardRadius),
+                      child: _buildHistorySection(context, l10n, theme, entriesAsync),
                     ),
 
-                    const Divider(height: 32),
-
-                    // 4. History — collapsed by default
-                    _buildHistorySection(context, l10n, theme, entriesAsync),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -157,77 +187,65 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Text('/', style: separatorStyle),
             ),
-            Text(
-              activity.name,
-              style: theme.textTheme.titleLarge,
-            ),
+            Text(activity.name, style: theme.textTheme.titleLarge),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildCompactLog(BuildContext context, S l10n, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildLogButtons(BuildContext context, S l10n, ThemeData theme) {
+    return Row(
       children: [
-        // Quick-action row: two buttons + expand toggle
-        Row(
-          children: [
-            Expanded(
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _showLogDialog(context, isTimeOnly: true),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _QuickLogButton(
-                    label: l10n.logTime,
-                    icon: Icons.schedule_outlined,
-                    onTap: () => _showCustomDialog(context, isTimeOnly: true),
-                  ),
-                  const SizedBox(width: 8),
-                  _QuickLogButton(
-                    label: l10n.logCount,
-                    icon: Icons.tag_outlined,
-                    onTap: () => _showCustomDialog(context, isTimeOnly: false),
+                  Icon(Icons.add, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.logTime,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            IconButton(
-              icon: Icon(
-                _presetsExpanded ? Icons.expand_less : Icons.expand_more,
-                color: theme.colorScheme.secondary,
-              ),
-              onPressed: () => setState(() => _presetsExpanded = !_presetsExpanded),
-              tooltip: _presetsExpanded ? '' : '',
-            ),
-          ],
+          ),
         ),
-        // Expandable presets
-        if (_presetsExpanded) ...[
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _ChipButton(label: '5m', onTap: () => _logEntry(context, 5, 0)),
-              _ChipButton(label: '10m', onTap: () => _logEntry(context, 10, 0)),
-              _ChipButton(label: '15m', onTap: () => _logEntry(context, 15, 0)),
-              _ChipButton(label: '30m', onTap: () => _logEntry(context, 30, 0)),
-              _ChipButton(label: '1h', onTap: () => _logEntry(context, 60, 0)),
-            ],
+        Container(
+          width: 1,
+          height: 24,
+          color: theme.colorScheme.outlineVariant,
+        ),
+        Expanded(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => _showLogDialog(context, isTimeOnly: false),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, size: 18, color: theme.colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.logCount,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _ChipButton(label: '+1', onTap: () => _logEntry(context, 0, 1)),
-              _ChipButton(label: '+5', onTap: () => _logEntry(context, 0, 5)),
-              _ChipButton(label: '+10', onTap: () => _logEntry(context, 0, 10)),
-              _ChipButton(label: '+25', onTap: () => _logEntry(context, 0, 25)),
-            ],
-          ),
-        ],
+        ),
       ],
     );
   }
@@ -308,6 +326,7 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
               sort: _sort,
               onSortChanged: (sort) => setState(() => _sort = sort),
               onDelete: (entryId) => _deleteEntry(context, entryId),
+              onEdit: (entry) => _editEntry(context, entry),
               showHeader: false,
             ),
           ),
@@ -355,15 +374,15 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
     }
   }
 
-  void _showCustomDialog(BuildContext context, {required bool isTimeOnly}) {
+  // --- Log dialog with presets ---
+
+  void _showLogDialog(BuildContext context, {required bool isTimeOnly}) {
     final l10n = S.of(context)!;
     showDialog(
       context: context,
-      builder: (ctx) => _CustomValueDialog(
-        title: isTimeOnly ? l10n.customDuration : l10n.customCount,
-        showTimeField: isTimeOnly,
-        showCountField: !isTimeOnly,
-        timeSuffix: l10n.minutes,
+      builder: (ctx) => _LogDialog(
+        title: isTimeOnly ? l10n.logTime : l10n.logCount,
+        isTime: isTimeOnly,
         onSubmit: ({required double timeMinutes, required double countValue}) {
           _logEntry(context, timeMinutes, countValue);
         },
@@ -395,6 +414,37 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
     }
   }
 
+  // --- Entry edit/delete ---
+
+  void _editEntry(BuildContext context, TimeEntry entry) async {
+    final l10n = S.of(context)!;
+    final result = await showDialog<({double time, double count})>(
+      context: context,
+      builder: (ctx) => _EditEntryDialog(entry: entry),
+    );
+    if (result == null) return;
+    try {
+      await ref.read(timeEntriesRepositoryProvider).updateEntry(
+            entry.id,
+            timeMinutes: result.time,
+            countValue: result.count,
+          );
+      _invalidateAll();
+      if (context.mounted) {
+        final display = formatDualValue(context, result.time, result.count);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.updated(display))),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.error(e.toString()))),
+        );
+      }
+    }
+  }
+
   void _deleteEntry(BuildContext context, String entryId) async {
     final l10n = S.of(context)!;
     try {
@@ -409,7 +459,56 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
     }
   }
 
-  void _showAddChildDialog(BuildContext context, activity) async {
+  // --- Activity edit/archive ---
+
+  void _editActivity(BuildContext context, dynamic activity) async {
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (_) => AddActivityDialog(
+        initialName: activity.name,
+        initialColor: activity.color,
+      ),
+    );
+    if (result != null) {
+      await ref.read(activitiesProvider.notifier).updateActivity(
+            activity.id,
+            name: result['name'],
+            color: result['color'],
+          );
+      ref.invalidate(activityProvider(widget.activityId));
+      ref.invalidate(activityAncestorsProvider(widget.activityId));
+    }
+  }
+
+  void _archiveActivity(BuildContext context, S l10n, dynamic activity) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.archiveActivity),
+        content: Text(l10n.archiveActivityConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.archive),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await ref.read(activitiesProvider.notifier).updateActivity(
+            activity.id,
+            archived: true,
+          );
+      ref.read(timeEntriesVersionProvider.notifier).state++;
+      if (context.mounted) context.go('/');
+    }
+  }
+
+  void _showAddChildDialog(BuildContext context, dynamic activity) async {
     if (activity == null) return;
     final result = await showDialog<Map<String, String>>(
       context: context,
@@ -437,80 +536,192 @@ class _ActivityDetailScreenState extends ConsumerState<ActivityDetailScreen> {
   }
 }
 
-class _QuickLogButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
+// --- Log Dialog with presets + text field ---
 
-  const _QuickLogButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
+enum _TimeUnit { seconds, minutes, hours, days }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Expanded(
-      child: OutlinedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 18),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          side: BorderSide(color: theme.colorScheme.outline),
-        ),
-      ),
-    );
-  }
-}
-
-class _ChipButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onTap;
-
-  const _ChipButton({required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(4),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(label, style: theme.textTheme.labelLarge),
-      ),
-    );
-  }
-}
-
-class _CustomValueDialog extends StatefulWidget {
+class _LogDialog extends StatefulWidget {
   final String title;
-  final bool showTimeField;
-  final bool showCountField;
-  final String? timeSuffix;
+  final bool isTime;
   final void Function({required double timeMinutes, required double countValue}) onSubmit;
 
-  const _CustomValueDialog({
+  const _LogDialog({
     required this.title,
-    this.showTimeField = true,
-    this.showCountField = false,
-    this.timeSuffix,
+    required this.isTime,
     required this.onSubmit,
   });
 
   @override
-  State<_CustomValueDialog> createState() => _CustomValueDialogState();
+  State<_LogDialog> createState() => _LogDialogState();
 }
 
-class _CustomValueDialogState extends State<_CustomValueDialog> {
-  final _timeController = TextEditingController();
-  final _countController = TextEditingController();
+class _LogDialogState extends State<_LogDialog> {
+  final _controller = TextEditingController();
+  _TimeUnit _unit = _TimeUnit.minutes;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _toMinutes(double value) {
+    switch (_unit) {
+      case _TimeUnit.seconds:
+        return value / 60;
+      case _TimeUnit.minutes:
+        return value;
+      case _TimeUnit.hours:
+        return value * 60;
+      case _TimeUnit.days:
+        return value * 1440;
+    }
+  }
+
+  void _submit(double value) {
+    if (value <= 0) return;
+    Navigator.of(context).pop();
+    if (widget.isTime) {
+      widget.onSubmit(timeMinutes: _toMinutes(value), countValue: 0);
+    } else {
+      widget.onSubmit(timeMinutes: 0, countValue: value);
+    }
+  }
+
+  void _submitField() {
+    final value = double.tryParse(_controller.text.trim()) ?? 0;
+    _submit(value);
+  }
+
+  List<(String, double)> _presetsForUnit() {
+    switch (_unit) {
+      case _TimeUnit.seconds:
+        return [('15s', 15), ('30s', 30), ('45s', 45), ('60s', 60), ('90s', 90)];
+      case _TimeUnit.minutes:
+        return [('5m', 5), ('10m', 10), ('15m', 15), ('30m', 30), ('1h', 60)];
+      case _TimeUnit.hours:
+        return [('0.5h', 0.5), ('1h', 1), ('2h', 2), ('4h', 4), ('8h', 8)];
+      case _TimeUnit.days:
+        return [('1d', 1), ('2d', 2), ('3d', 3), ('5d', 5), ('7d', 7)];
+    }
+  }
+
+  String _unitSuffix(S l10n) {
+    switch (_unit) {
+      case _TimeUnit.seconds:
+        return l10n.seconds;
+      case _TimeUnit.minutes:
+        return l10n.minutes;
+      case _TimeUnit.hours:
+        return l10n.hours;
+      case _TimeUnit.days:
+        return l10n.days;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
+
+    final presets = widget.isTime ? _presetsForUnit() : [('+1', 1.0), ('+5', 5.0), ('+10', 10.0), ('+25', 25.0), ('+50', 50.0), ('+100', 100.0)];
+
+    return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      title: Text(widget.title),
+      content: SizedBox(
+        width: 340,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.isTime)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: SegmentedButton<_TimeUnit>(
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(value: _TimeUnit.seconds, label: Text(l10n.seconds)),
+                    ButtonSegment(value: _TimeUnit.minutes, label: Text(l10n.minutes)),
+                    ButtonSegment(value: _TimeUnit.hours, label: Text(l10n.hours)),
+                    ButtonSegment(value: _TimeUnit.days, label: Text(l10n.days)),
+                  ],
+                  selected: {_unit},
+                  onSelectionChanged: (selected) {
+                    setState(() => _unit = selected.first);
+                  },
+                ),
+              ),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: presets.map((p) {
+                return InkWell(
+                  borderRadius: BorderRadius.circular(4),
+                  onTap: () => _submit(p.$2),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: theme.colorScheme.outline),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(p.$1, style: theme.textTheme.labelLarge),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controller,
+              autofocus: false,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                suffixText: widget.isTime ? _unitSuffix(l10n) : null,
+                hintText: widget.isTime ? '45' : '3',
+              ),
+              onSubmitted: (_) => _submitField(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: _submitField,
+          child: Text(l10n.add),
+        ),
+      ],
+    );
+  }
+}
+
+// --- Edit Entry Dialog ---
+
+class _EditEntryDialog extends StatefulWidget {
+  final TimeEntry entry;
+
+  const _EditEntryDialog({required this.entry});
+
+  @override
+  State<_EditEntryDialog> createState() => _EditEntryDialogState();
+}
+
+class _EditEntryDialogState extends State<_EditEntryDialog> {
+  late final TextEditingController _timeController;
+  late final TextEditingController _countController;
+
+  @override
+  void initState() {
+    super.initState();
+    _timeController = TextEditingController(
+      text: widget.entry.value > 0 ? widget.entry.value.toString() : '',
+    );
+    _countController = TextEditingController(
+      text: widget.entry.countValue > 0 ? widget.entry.countValue.toString() : '',
+    );
+  }
 
   @override
   void dispose() {
@@ -523,25 +734,25 @@ class _CustomValueDialogState extends State<_CustomValueDialog> {
   Widget build(BuildContext context) {
     final l10n = S.of(context)!;
     return AlertDialog(
-      title: Text(widget.title),
+      title: Text(l10n.editEntry),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.showTimeField)
-            TextField(
-              controller: _timeController,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(suffixText: widget.timeSuffix),
-              onSubmitted: (_) => _submit(),
+          TextField(
+            controller: _timeController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: l10n.time,
+              suffixText: l10n.minutes,
             ),
-          if (widget.showCountField)
-            TextField(
-              controller: _countController,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              onSubmitted: (_) => _submit(),
-            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _countController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(labelText: l10n.count),
+            onSubmitted: (_) => _submit(),
+          ),
         ],
       ),
       actions: [
@@ -551,7 +762,7 @@ class _CustomValueDialogState extends State<_CustomValueDialog> {
         ),
         TextButton(
           onPressed: _submit,
-          child: Text(l10n.add),
+          child: Text(l10n.save),
         ),
       ],
     );
@@ -560,8 +771,6 @@ class _CustomValueDialogState extends State<_CustomValueDialog> {
   void _submit() {
     final time = double.tryParse(_timeController.text.trim()) ?? 0;
     final count = double.tryParse(_countController.text.trim()) ?? 0;
-    if (time <= 0 && count <= 0) return;
-    Navigator.of(context).pop();
-    widget.onSubmit(timeMinutes: time, countValue: count);
+    Navigator.of(context).pop((time: time, count: count));
   }
 }

@@ -254,6 +254,21 @@ class SIt extends S {
   }
 
   @override
+  String get editEntry => 'Modifica voce';
+
+  @override
+  String get archiveActivity => 'Archiviare attività?';
+
+  @override
+  String get archiveActivityConfirm =>
+      'L\'attività sarà nascosta. I dati saranno conservati.';
+
+  @override
+  String updated(String value) {
+    return 'Aggiornato: $value';
+  }
+
+  @override
   String activityCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -263,4 +278,16 @@ class SIt extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get coloredGrid => 'Griglia colorata';
+
+  @override
+  String get seconds => 'sec';
+
+  @override
+  String get hours => 'ore';
+
+  @override
+  String get days => 'gg';
 }

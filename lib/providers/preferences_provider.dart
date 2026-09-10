@@ -80,6 +80,25 @@ class ViewModeNotifier extends StateNotifier<ViewMode> {
   }
 }
 
+// Colored grid
+final coloredGridProvider = StateNotifierProvider<ColoredGridNotifier, bool>(
+  (ref) {
+    final prefs = ref.watch(appPreferencesProvider);
+    return ColoredGridNotifier(prefs);
+  },
+);
+
+class ColoredGridNotifier extends StateNotifier<bool> {
+  final AppPreferences _prefs;
+
+  ColoredGridNotifier(this._prefs) : super(_prefs.coloredGrid);
+
+  Future<void> set(bool value) async {
+    state = value;
+    await _prefs.setColoredGrid(value);
+  }
+}
+
 // Sync preferences from Supabase on login
 final syncPreferencesProvider = FutureProvider<void>((ref) async {
   final repo = ref.watch(preferencesRepositoryProvider);

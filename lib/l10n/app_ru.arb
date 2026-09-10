@@ -73,10 +73,18 @@
   "color": "Цвет",
   "trackingType": "Тип трекинга",
   "parentActivity": "Родитель: {name}",
+  "editEntry": "Редактировать запись",
+  "archiveActivity": "Архивировать активность?",
+  "archiveActivityConfirm": "Активность будет скрыта. Данные сохранятся.",
+  "updated": "Обновлено: {value}",
   "activityCount": "{count, plural, =1{1 активность} few{{count} активности} other{{count} активностей}}",
   "@activityCount": {
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "coloredGrid": "Цветная сетка",
+  "seconds": "сек",
+  "hours": "ч",
+  "days": "дн"
 }

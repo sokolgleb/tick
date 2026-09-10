@@ -254,6 +254,21 @@ class STr extends S {
   }
 
   @override
+  String get editEntry => 'Kaydı düzenle';
+
+  @override
+  String get archiveActivity => 'Aktiviteyi arşivle?';
+
+  @override
+  String get archiveActivityConfirm =>
+      'Aktivite gizlenecek. Verileriniz korunacak.';
+
+  @override
+  String updated(String value) {
+    return 'Güncellendi: $value';
+  }
+
+  @override
   String activityCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -263,4 +278,16 @@ class STr extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get coloredGrid => 'Renkli ızgara';
+
+  @override
+  String get seconds => 'sn';
+
+  @override
+  String get hours => 'sa';
+
+  @override
+  String get days => 'gün';
 }

@@ -254,6 +254,21 @@ class SEn extends S {
   }
 
   @override
+  String get editEntry => 'Edit Entry';
+
+  @override
+  String get archiveActivity => 'Archive activity?';
+
+  @override
+  String get archiveActivityConfirm =>
+      'This activity will be hidden. Your data will be preserved.';
+
+  @override
+  String updated(String value) {
+    return 'Updated $value';
+  }
+
+  @override
   String activityCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -263,4 +278,16 @@ class SEn extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get coloredGrid => 'Colored grid';
+
+  @override
+  String get seconds => 'sec';
+
+  @override
+  String get hours => 'hr';
+
+  @override
+  String get days => 'day';
 }

@@ -73,10 +73,18 @@
   "color": "Color",
   "trackingType": "Tipo de seguimiento",
   "parentActivity": "Padre: {name}",
+  "editEntry": "Editar entrada",
+  "archiveActivity": "\u00bfArchivar actividad?",
+  "archiveActivityConfirm": "La actividad se ocultar\u00e1. Tus datos se conservar\u00e1n.",
+  "updated": "Actualizado: {value}",
   "activityCount": "{count, plural, =1{1 actividad} other{{count} actividades}}",
   "@activityCount": {
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "coloredGrid": "Cuadr\u00edcula con color",
+  "seconds": "seg",
+  "hours": "hr",
+  "days": "d\u00eda"
 }

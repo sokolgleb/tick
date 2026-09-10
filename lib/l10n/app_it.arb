@@ -73,10 +73,18 @@
   "color": "Colore",
   "trackingType": "Tipo di tracciamento",
   "parentActivity": "Genitore: {name}",
+  "editEntry": "Modifica voce",
+  "archiveActivity": "Archiviare attivit\u00e0?",
+  "archiveActivityConfirm": "L'attivit\u00e0 sar\u00e0 nascosta. I dati saranno conservati.",
+  "updated": "Aggiornato: {value}",
   "activityCount": "{count, plural, =1{1 attivit\u00e0} other{{count} attivit\u00e0}}",
   "@activityCount": {
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "coloredGrid": "Griglia colorata",
+  "seconds": "sec",
+  "hours": "ore",
+  "days": "gg"
 }

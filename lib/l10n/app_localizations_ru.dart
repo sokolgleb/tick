@@ -255,6 +255,21 @@ class SRu extends S {
   }
 
   @override
+  String get editEntry => 'Редактировать запись';
+
+  @override
+  String get archiveActivity => 'Архивировать активность?';
+
+  @override
+  String get archiveActivityConfirm =>
+      'Активность будет скрыта. Данные сохранятся.';
+
+  @override
+  String updated(String value) {
+    return 'Обновлено: $value';
+  }
+
+  @override
   String activityCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -265,4 +280,16 @@ class SRu extends S {
     );
     return '$_temp0';
   }
+
+  @override
+  String get coloredGrid => 'Цветная сетка';
+
+  @override
+  String get seconds => 'сек';
+
+  @override
+  String get hours => 'ч';
+
+  @override
+  String get days => 'дн';
 }

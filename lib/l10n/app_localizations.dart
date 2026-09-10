@@ -541,11 +541,59 @@ abstract class S {
   /// **'Parent: {name}'**
   String parentActivity(String name);
 
+  /// No description provided for @editEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Entry'**
+  String get editEntry;
+
+  /// No description provided for @archiveActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive activity?'**
+  String get archiveActivity;
+
+  /// No description provided for @archiveActivityConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This activity will be hidden. Your data will be preserved.'**
+  String get archiveActivityConfirm;
+
+  /// No description provided for @updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {value}'**
+  String updated(String value);
+
   /// No description provided for @activityCount.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 activity} other{{count} activities}}'**
   String activityCount(int count);
+
+  /// No description provided for @coloredGrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored grid'**
+  String get coloredGrid;
+
+  /// No description provided for @seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'sec'**
+  String get seconds;
+
+  /// No description provided for @hours.
+  ///
+  /// In en, this message translates to:
+  /// **'hr'**
+  String get hours;
+
+  /// No description provided for @days.
+  ///
+  /// In en, this message translates to:
+  /// **'day'**
+  String get days;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

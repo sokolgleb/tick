@@ -10,6 +10,7 @@ class TimeEntryList extends StatelessWidget {
   final EntrySort sort;
   final ValueChanged<EntrySort> onSortChanged;
   final void Function(String entryId) onDelete;
+  final void Function(TimeEntry entry)? onEdit;
   final bool showHeader;
 
   const TimeEntryList({
@@ -18,6 +19,7 @@ class TimeEntryList extends StatelessWidget {
     required this.sort,
     required this.onSortChanged,
     required this.onDelete,
+    this.onEdit,
     this.showHeader = true,
   });
 
@@ -79,6 +81,8 @@ class TimeEntryList extends StatelessWidget {
         ),
       );
       for (final entry in dayEntries) {
+        final localTime = entry.createdAt.toLocal();
+        final timeStr = '${localTime.hour.toString().padLeft(2, '0')}:${localTime.minute.toString().padLeft(2, '0')}';
         widgets.add(
           Dismissible(
             key: Key(entry.id),
@@ -90,25 +94,43 @@ class TimeEntryList extends StatelessWidget {
               child: Icon(Icons.delete_outline, color: theme.colorScheme.onError),
             ),
             onDismissed: (_) => onDelete(entry.id),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Text(
-                    formatDualValue(context, entry.value, entry.countValue),
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  if (entry.note != null && entry.note!.isNotEmpty) ...[
-                    const SizedBox(width: 12),
-                    Expanded(
+            child: InkWell(
+              onTap: onEdit != null ? () => onEdit!(entry) : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 48,
                       child: Text(
-                        entry.note!,
-                        style: theme.textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
+                        timeStr,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
+                    Expanded(
+                      child: Text(
+                        formatDualValue(context, entry.value, entry.countValue),
+                        style: theme.textTheme.bodyLarge,
+                      ),
+                    ),
+                    if (entry.note != null && entry.note!.isNotEmpty)
+                      Expanded(
+                        child: Text(
+                          entry.note!,
+                          style: theme.textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if (onEdit != null)
+                      Icon(
+                        Icons.edit_outlined,
+                        size: 16,
+                        color: theme.colorScheme.secondary,
+                      ),
                   ],
-                ],
+                ),
               ),
             ),
           ),

@@ -73,10 +73,18 @@
   "color": "Renk",
   "trackingType": "Takip t\u00fcr\u00fc",
   "parentActivity": "\u00dcst: {name}",
+  "editEntry": "Kayd\u0131 d\u00fczenle",
+  "archiveActivity": "Aktiviteyi ar\u015fivle?",
+  "archiveActivityConfirm": "Aktivite gizlenecek. Verileriniz korunacak.",
+  "updated": "G\u00fcncellendi: {value}",
   "activityCount": "{count, plural, =1{1 aktivite} other{{count} aktivite}}",
   "@activityCount": {
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "coloredGrid": "Renkli \u0131zgara",
+  "seconds": "sn",
+  "hours": "sa",
+  "days": "g\u00fcn"
 }

@@ -30,6 +30,7 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final viewMode = ref.watch(viewModeProvider);
     final locale = ref.watch(localeProvider);
+    final coloredGrid = ref.watch(coloredGridProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -153,6 +154,18 @@ class SettingsScreen extends ConsumerWidget {
                     visualDensity: VisualDensity.compact,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Colored grid
+              _SettingsRow(
+                label: l10n.coloredGrid,
+                child: Switch(
+                  value: coloredGrid,
+                  onChanged: (value) =>
+                      ref.read(coloredGridProvider.notifier).set(value),
                 ),
               ),
 

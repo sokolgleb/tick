@@ -22,6 +22,7 @@ class HomeScreen extends ConsumerWidget {
     final viewMode = ref.watch(viewModeProvider);
     final selectedPeriod = ref.watch(homeSelectedPeriodProvider);
     final childCounts = ref.watch(activityChildCountsProvider).valueOrNull ?? {};
+    final coloredGrid = ref.watch(coloredGridProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +36,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             IconButton(
-              icon: Icon(viewMode == ViewMode.list ? Icons.apps_outlined : Icons.view_agenda_outlined),
+              icon: Icon(viewMode == ViewMode.list ? Icons.apps_outlined : Icons.format_list_bulleted),
               onPressed: () {
                 final next = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
                 ref.read(viewModeProvider.notifier).set(next);
@@ -102,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
                             },
                             child: viewMode == ViewMode.list
                                 ? _buildList(context, ref, activities, childCounts)
-                                : _buildGrid(context, ref, activities, childCounts),
+                                : _buildGrid(context, ref, activities, childCounts, coloredGrid),
                           ),
                   ),
                   if (activities.isNotEmpty)
@@ -148,7 +149,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGrid(BuildContext context, WidgetRef ref, List activities, Map<String, int> childCounts) {
+  Widget _buildGrid(BuildContext context, WidgetRef ref, List activities, Map<String, int> childCounts, bool colored) {
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -166,6 +167,7 @@ class HomeScreen extends ConsumerWidget {
           activity: activity,
           todayTotal: total,
           childCount: childCounts[activity.id] ?? 0,
+          colored: colored,
           onTap: () => context.push('/activity/${activity.id}'),
           onLongPress: () => _showOptions(context, ref, activity),
         );
