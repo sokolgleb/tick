@@ -56,3 +56,32 @@ final childActivitiesProvider = FutureProvider.family<List<Activity>, String>((r
 final activityProvider = FutureProvider.family<Activity?, String>((ref, id) {
   return ref.watch(activitiesRepositoryProvider).getActivityById(id);
 });
+
+/// Full ancestor chain for an activity (from root to current, excluding current)
+final activityAncestorsProvider = FutureProvider.family<List<Activity>, String>((ref, activityId) async {
+  final repo = ref.watch(activitiesRepositoryProvider);
+  final activity = await repo.getActivityById(activityId);
+  if (activity == null || activity.parentId == null) return [];
+
+  final ancestors = <Activity>[];
+  String? currentParentId = activity.parentId;
+  while (currentParentId != null) {
+    final parent = await repo.getActivityById(currentParentId);
+    if (parent == null) break;
+    ancestors.insert(0, parent);
+    currentParentId = parent.parentId;
+  }
+  return ancestors;
+});
+
+/// Child counts for top-level activities: {activityId: count}
+final activityChildCountsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final repo = ref.watch(activitiesRepositoryProvider);
+  final activities = ref.watch(activitiesProvider).valueOrNull ?? [];
+  final counts = <String, int>{};
+  for (final activity in activities) {
+    final children = await repo.getChildren(activity.id);
+    counts[activity.id] = children.length;
+  }
+  return counts;
+});

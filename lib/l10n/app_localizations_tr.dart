@@ -252,4 +252,15 @@ class STr extends S {
   String parentActivity(String name) {
     return 'Üst: $name';
   }
+
+  @override
+  String activityCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count aktivite',
+      one: '1 aktivite',
+    );
+    return '$_temp0';
+  }
 }

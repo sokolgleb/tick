@@ -253,4 +253,16 @@ class SRu extends S {
   String parentActivity(String name) {
     return 'Родитель: $name';
   }
+
+  @override
+  String activityCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count активностей',
+      few: '$count активности',
+      one: '1 активность',
+    );
+    return '$_temp0';
+  }
 }

@@ -118,5 +118,11 @@
     "placeholders": {
       "name": { "type": "String" }
     }
+  },
+  "activityCount": "{count, plural, =1{1 activity} other{{count} activities}}",
+  "@activityCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
   }
 }

@@ -72,5 +72,11 @@
   "error": "Ошибка: {message}",
   "color": "Цвет",
   "trackingType": "Тип трекинга",
-  "parentActivity": "Родитель: {name}"
+  "parentActivity": "Родитель: {name}",
+  "activityCount": "{count, plural, =1{1 активность} few{{count} активности} other{{count} активностей}}",
+  "@activityCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

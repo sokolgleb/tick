@@ -32,7 +32,30 @@ class SettingsScreen extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settings)),
+      appBar: AppBar(
+        centerTitle: false,
+        title: Row(
+          children: [
+            GestureDetector(
+              onTap: () => context.go('/'),
+              child: Text(
+                l10n.appTitle,
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                '/',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ),
+            Text(l10n.settings),
+          ],
+        ),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -51,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     Icon(
-                      isAnonymous ? Icons.person_outline : Icons.person,
+                      Icons.person_outline,
                       color: theme.colorScheme.secondary,
                     ),
                     const SizedBox(width: 12),
@@ -138,26 +161,22 @@ class SettingsScreen extends ConsumerWidget {
               // Language
               Text(l10n.language, style: theme.textTheme.headlineSmall),
               const SizedBox(height: 12),
-              ..._supportedLocales.map((entry) {
-                final (loc, label) = entry;
-                final isSelected = loc?.languageCode == locale?.languageCode;
-                final isSystem = loc == null && locale == null;
-                final selected = isSelected || isSystem;
-
-                return InkWell(
-                  onTap: () => ref.read(localeProvider.notifier).set(loc),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(label, style: theme.textTheme.titleMedium)),
-                        if (selected)
-                          Icon(Icons.check, size: 18, color: theme.colorScheme.primary),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+              DropdownMenu<String>(
+                initialSelection: locale?.languageCode ?? 'system',
+                expandedInsets: EdgeInsets.zero,
+                onSelected: (value) {
+                  if (value == null) return;
+                  final loc = value == 'system' ? null : Locale(value);
+                  ref.read(localeProvider.notifier).set(loc);
+                },
+                dropdownMenuEntries: _supportedLocales.map((entry) {
+                  final (loc, label) = entry;
+                  return DropdownMenuEntry<String>(
+                    value: loc?.languageCode ?? 'system',
+                    label: label,
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),

@@ -81,6 +81,7 @@ class DateRangeSelector extends StatelessWidget {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
+      initialEntryMode: DatePickerEntryMode.input,
       initialDateRange: DateTimeRange(
         start: now.subtract(const Duration(days: 7)),
         end: now,

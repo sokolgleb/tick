@@ -7,14 +7,12 @@ class ChildActivitiesList extends StatelessWidget {
   final List<Activity> children;
   final Map<String, ({double time, double count})> totals;
   final void Function(Activity) onTap;
-  final VoidCallback onAdd;
 
   const ChildActivitiesList({
     super.key,
     required this.children,
     required this.totals,
     required this.onTap,
-    required this.onAdd,
   });
 
   @override
@@ -58,12 +56,6 @@ class ChildActivitiesList extends StatelessWidget {
             ),
           );
         }),
-        const SizedBox(height: 4),
-        TextButton.icon(
-          onPressed: onAdd,
-          icon: const Icon(Icons.add, size: 16),
-          label: Text(l10n.addSubActivity),
-        ),
       ],
     );
   }

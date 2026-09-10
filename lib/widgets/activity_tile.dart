@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:tick/l10n/app_localizations.dart';
 import '../core/extensions.dart';
 import '../models/activity.dart';
 
 class ActivityTile extends StatelessWidget {
   final Activity activity;
   final ({double time, double count}) todayTotal;
-  final bool hasChildren;
+  final int childCount;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -13,14 +14,16 @@ class ActivityTile extends StatelessWidget {
     super.key,
     required this.activity,
     required this.todayTotal,
-    this.hasChildren = false,
+    this.childCount = 0,
     required this.onTap,
     required this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
     final color = parseHexColor(activity.color);
+    final theme = Theme.of(context);
 
     return InkWell(
       onTap: onTap,
@@ -42,22 +45,27 @@ class ActivityTile extends StatelessWidget {
             Expanded(
               child: Text(
                 activity.name,
-                style: Theme.of(context).textTheme.titleMedium,
+                style: theme.textTheme.titleMedium,
               ),
             ),
             Text(
               formatDualValue(context, todayTotal.time, todayTotal.count),
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: theme.textTheme.bodyLarge,
             ),
-            if (hasChildren)
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.secondary,
+            if (childCount > 0) ...[
+              const SizedBox(width: 4),
+              Text(
+                l10n.activityCount(childCount),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.secondary,
                 ),
               ),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: theme.colorScheme.secondary,
+              ),
+            ],
             const SizedBox(width: 20),
           ],
         ),

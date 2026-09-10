@@ -252,4 +252,15 @@ class SEs extends S {
   String parentActivity(String name) {
     return 'Padre: $name';
   }
+
+  @override
+  String activityCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count actividades',
+      one: '1 actividad',
+    );
+    return '$_temp0';
+  }
 }

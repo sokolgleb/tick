@@ -6,10 +6,12 @@ import 'date_range_selector.dart';
 
 class TimeStatsCard extends StatefulWidget {
   final Map<StatPeriod, ({double time, double count})> stats;
+  final ValueChanged<DateTimeRange>? onCustomRange;
 
   const TimeStatsCard({
     super.key,
     required this.stats,
+    this.onCustomRange,
   });
 
   @override
@@ -33,6 +35,7 @@ class _TimeStatsCardState extends State<TimeStatsCard> {
         DateRangeSelector(
           selected: _selected,
           onChanged: (period) => setState(() => _selected = period),
+          onCustomRange: widget.onCustomRange,
         ),
         const SizedBox(height: 12),
         Text(

@@ -72,5 +72,11 @@
   "error": "Hata: {message}",
   "color": "Renk",
   "trackingType": "Takip t\u00fcr\u00fc",
-  "parentActivity": "\u00dcst: {name}"
+  "parentActivity": "\u00dcst: {name}",
+  "activityCount": "{count, plural, =1{1 aktivite} other{{count} aktivite}}",
+  "@activityCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

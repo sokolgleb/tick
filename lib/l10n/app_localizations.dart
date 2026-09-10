@@ -540,6 +540,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Parent: {name}'**
   String parentActivity(String name);
+
+  /// No description provided for @activityCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 activity} other{{count} activities}}'**
+  String activityCount(int count);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

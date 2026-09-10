@@ -72,5 +72,11 @@
   "error": "Error: {message}",
   "color": "Color",
   "trackingType": "Tipo de seguimiento",
-  "parentActivity": "Padre: {name}"
+  "parentActivity": "Padre: {name}",
+  "activityCount": "{count, plural, =1{1 actividad} other{{count} actividades}}",
+  "@activityCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
 }

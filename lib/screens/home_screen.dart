@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tick/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../core/preferences.dart';
+import '../models/stat_period.dart';
 import '../providers/activities_provider.dart';
 import '../providers/preferences_provider.dart';
 import '../providers/time_entries_provider.dart';
@@ -18,20 +19,31 @@ class HomeScreen extends ConsumerWidget {
     final l10n = S.of(context)!;
     final theme = Theme.of(context);
     final activitiesAsync = ref.watch(activitiesProvider);
-    final totalsAsync = ref.watch(todayTotalsProvider);
     final viewMode = ref.watch(viewModeProvider);
+    final selectedPeriod = ref.watch(homeSelectedPeriodProvider);
+    final childCounts = ref.watch(activityChildCountsProvider).valueOrNull ?? {};
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        centerTitle: false,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () => context.go('/'),
+              child: Text(l10n.appTitle),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(viewMode == ViewMode.list ? Icons.apps_outlined : Icons.view_agenda_outlined),
+              onPressed: () {
+                final next = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
+                ref.read(viewModeProvider.notifier).set(next);
+              },
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: Icon(viewMode == ViewMode.list ? Icons.grid_view : Icons.view_list),
-            onPressed: () {
-              final next = viewMode == ViewMode.list ? ViewMode.grid : ViewMode.list;
-              ref.read(viewModeProvider.notifier).set(next);
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/settings'),
@@ -40,21 +52,26 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: BoxConstraints(maxWidth: viewMode == ViewMode.list ? 600 : double.infinity),
           child: activitiesAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, _) => Center(child: Text(l10n.error(err.toString()))),
             data: (activities) {
-              final totals = totalsAsync.valueOrNull ?? {};
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (activities.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(left: 20, top: 4, bottom: 2),
-                      child: Text(
-                        l10n.today,
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+                      padding: const EdgeInsets.only(left: 20, top: 4, bottom: 2, right: 20),
+                      child: _PeriodSelector(
+                        selected: selectedPeriod,
+                        onChanged: (period) {
+                          ref.read(homeSelectedPeriodProvider.notifier).state = period;
+                        },
+                        onCustomRange: (range) {
+                          ref.read(homeCustomRangeProvider.notifier).state = range;
+                          ref.read(homeSelectedPeriodProvider.notifier).state = StatPeriod.custom;
+                        },
                       ),
                     ),
                   Expanded(
@@ -72,6 +89,7 @@ class HomeScreen extends ConsumerWidget {
                                   onPressed: () => _showAddDialog(context, ref),
                                   icon: const Icon(Icons.add),
                                   label: Text(l10n.newActivity),
+                                  style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
                                 ),
                               ],
                             ),
@@ -79,11 +97,12 @@ class HomeScreen extends ConsumerWidget {
                         : RefreshIndicator(
                             onRefresh: () async {
                               ref.invalidate(activitiesProvider);
-                              ref.invalidate(todayTotalsProvider);
+                              ref.invalidate(activityChildCountsProvider);
+                              ref.read(timeEntriesVersionProvider.notifier).state++;
                             },
                             child: viewMode == ViewMode.list
-                                ? _buildList(context, ref, activities, totals)
-                                : _buildGrid(context, ref, activities, totals),
+                                ? _buildList(context, ref, activities, childCounts)
+                                : _buildGrid(context, ref, activities, childCounts),
                           ),
                   ),
                   if (activities.isNotEmpty)
@@ -95,6 +114,7 @@ class HomeScreen extends ConsumerWidget {
                             onPressed: () => _showAddDialog(context, ref),
                             icon: const Icon(Icons.add, size: 18),
                             label: Text(l10n.newActivity),
+                            style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
                           ),
                         ),
                       ),
@@ -108,16 +128,19 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildList(BuildContext context, WidgetRef ref, List activities, Map<String, ({double time, double count})> totals) {
+  Widget _buildList(BuildContext context, WidgetRef ref, List activities, Map<String, int> childCounts) {
     return ListView.separated(
       padding: EdgeInsets.zero,
       itemCount: activities.length,
       separatorBuilder: (_, __) => Divider(indent: 36, endIndent: 20),
       itemBuilder: (context, index) {
         final activity = activities[index];
+        final subtreeAsync = ref.watch(homeSubtreeTotalsProvider(activity.id));
+        final total = subtreeAsync.valueOrNull ?? (time: 0.0, count: 0.0);
         return ActivityTile(
           activity: activity,
-          todayTotal: totals[activity.id] ?? (time: 0.0, count: 0.0),
+          todayTotal: total,
+          childCount: childCounts[activity.id] ?? 0,
           onTap: () => context.push('/activity/${activity.id}'),
           onLongPress: () => _showOptions(context, ref, activity),
         );
@@ -125,11 +148,11 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildGrid(BuildContext context, WidgetRef ref, List activities, Map<String, ({double time, double count})> totals) {
+  Widget _buildGrid(BuildContext context, WidgetRef ref, List activities, Map<String, int> childCounts) {
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 220,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
         childAspectRatio: 1.4,
@@ -137,9 +160,12 @@ class HomeScreen extends ConsumerWidget {
       itemCount: activities.length,
       itemBuilder: (context, index) {
         final activity = activities[index];
+        final subtreeAsync = ref.watch(homeSubtreeTotalsProvider(activity.id));
+        final total = subtreeAsync.valueOrNull ?? (time: 0.0, count: 0.0);
         return ActivityGridTile(
           activity: activity,
-          todayTotal: totals[activity.id] ?? (time: 0.0, count: 0.0),
+          todayTotal: total,
+          childCount: childCounts[activity.id] ?? 0,
           onTap: () => context.push('/activity/${activity.id}'),
           onLongPress: () => _showOptions(context, ref, activity),
         );
@@ -157,7 +183,8 @@ class HomeScreen extends ConsumerWidget {
             name: result['name']!,
             color: result['color']!,
           );
-      ref.invalidate(todayTotalsProvider);
+      ref.invalidate(activityChildCountsProvider);
+      ref.read(timeEntriesVersionProvider.notifier).state++;
     }
   }
 
@@ -201,7 +228,7 @@ class HomeScreen extends ConsumerWidget {
                       activity.id,
                       archived: true,
                     );
-                ref.invalidate(todayTotalsProvider);
+                ref.read(timeEntriesVersionProvider.notifier).state++;
               },
             ),
             ListTile(
@@ -231,7 +258,7 @@ class HomeScreen extends ConsumerWidget {
                 );
                 if (confirm == true) {
                   await ref.read(activitiesProvider.notifier).delete(activity.id);
-                  ref.invalidate(todayTotalsProvider);
+                  ref.read(timeEntriesVersionProvider.notifier).state++;
                 }
               },
             ),
@@ -239,5 +266,89 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+class _PeriodSelector extends StatelessWidget {
+  final StatPeriod selected;
+  final ValueChanged<StatPeriod> onChanged;
+  final ValueChanged<DateTimeRange> onCustomRange;
+
+  const _PeriodSelector({
+    required this.selected,
+    required this.onChanged,
+    required this.onCustomRange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = S.of(context)!;
+    final theme = Theme.of(context);
+
+    return PopupMenuButton<StatPeriod>(
+      onSelected: (period) {
+        if (period == StatPeriod.custom) {
+          _showDatePicker(context);
+        } else {
+          onChanged(period);
+        }
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(value: StatPeriod.today, child: Text(l10n.today)),
+        PopupMenuItem(value: StatPeriod.yesterday, child: Text(l10n.yesterday)),
+        PopupMenuItem(value: StatPeriod.thisWeek, child: Text(l10n.thisWeek)),
+        PopupMenuItem(value: StatPeriod.thisMonth, child: Text(l10n.thisMonth)),
+        PopupMenuItem(value: StatPeriod.thisYear, child: Text(l10n.thisYear)),
+        PopupMenuItem(value: StatPeriod.allTime, child: Text(l10n.allTime)),
+        PopupMenuItem(value: StatPeriod.custom, child: Text(l10n.custom)),
+      ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _periodLabel(l10n, selected),
+            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 4),
+          Icon(Icons.arrow_drop_down, size: 20, color: theme.colorScheme.secondary),
+        ],
+      ),
+    );
+  }
+
+  String _periodLabel(S l10n, StatPeriod period) {
+    switch (period) {
+      case StatPeriod.today:
+        return l10n.today;
+      case StatPeriod.yesterday:
+        return l10n.yesterday;
+      case StatPeriod.thisWeek:
+        return l10n.thisWeek;
+      case StatPeriod.thisMonth:
+        return l10n.thisMonth;
+      case StatPeriod.thisYear:
+        return l10n.thisYear;
+      case StatPeriod.allTime:
+        return l10n.allTime;
+      case StatPeriod.custom:
+        return l10n.custom;
+    }
+  }
+
+  void _showDatePicker(BuildContext context) async {
+    final now = DateTime.now();
+    final range = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      initialEntryMode: DatePickerEntryMode.input,
+      initialDateRange: DateTimeRange(
+        start: now.subtract(const Duration(days: 7)),
+        end: now,
+      ),
+    );
+    if (range != null) {
+      onCustomRange(range);
+    }
   }
 }

@@ -252,4 +252,15 @@ class SIt extends S {
   String parentActivity(String name) {
     return 'Genitore: $name';
   }
+
+  @override
+  String activityCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attività',
+      one: '1 attività',
+    );
+    return '$_temp0';
+  }
 }

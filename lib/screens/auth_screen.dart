@@ -33,7 +33,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        centerTitle: false,
+        title: GestureDetector(
+          onTap: () => context.go('/'),
+          child: Text(
+            S.of(context)!.appTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 400),
@@ -46,7 +55,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               const SizedBox(height: 32),
               OutlinedButton.icon(
                 onPressed: _loading ? null : _signInWithGoogle,
-                icon: const Icon(Icons.login, size: 18),
+                icon: const Icon(Icons.login_outlined, size: 18),
                 label: Text(l10n.signInWithGoogle),
               ),
               const SizedBox(height: 20),

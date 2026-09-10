@@ -10,6 +10,7 @@ class TimeEntryList extends StatelessWidget {
   final EntrySort sort;
   final ValueChanged<EntrySort> onSortChanged;
   final void Function(String entryId) onDelete;
+  final bool showHeader;
 
   const TimeEntryList({
     super.key,
@@ -17,6 +18,7 @@ class TimeEntryList extends StatelessWidget {
     required this.sort,
     required this.onSortChanged,
     required this.onDelete,
+    this.showHeader = true,
   });
 
   @override
@@ -27,13 +29,19 @@ class TimeEntryList extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(l10n.history, style: theme.textTheme.headlineSmall),
-            SortSelector(value: sort, onChanged: onSortChanged),
-          ],
-        ),
+        if (showHeader)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.history, style: theme.textTheme.headlineSmall),
+              SortSelector(value: sort, onChanged: onSortChanged),
+            ],
+          ),
+        if (!showHeader && entries.isNotEmpty)
+          Align(
+            alignment: Alignment.centerRight,
+            child: SortSelector(value: sort, onChanged: onSortChanged),
+          ),
         const SizedBox(height: 8),
         if (entries.isEmpty)
           Padding(
@@ -79,7 +87,7 @@ class TimeEntryList extends StatelessWidget {
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
               color: theme.colorScheme.error,
-              child: Icon(Icons.delete, color: theme.colorScheme.onError),
+              child: Icon(Icons.delete_outline, color: theme.colorScheme.onError),
             ),
             onDismissed: (_) => onDelete(entry.id),
             child: Padding(
