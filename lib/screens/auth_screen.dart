@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tick/l10n/app_localizations.dart';
@@ -123,12 +124,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
       if (authRepo.isAnonymous) {
-        try {
-          await authRepo.linkWithGoogle();
-          _onSuccess();
-          return;
-        } catch (_) {
+        if (kIsWeb) {
+          // On web, linkIdentity is redirect-based — can't catch errors
+          // across page reloads. Go directly to signIn flow.
           await _handleConflict(() => authRepo.signInWithGoogle());
+        } else {
+          try {
+            await authRepo.linkWithGoogle();
+            _onSuccess();
+            return;
+          } catch (_) {
+            await _handleConflict(() => authRepo.signInWithGoogle());
+          }
         }
       } else {
         await authRepo.signInWithGoogle();

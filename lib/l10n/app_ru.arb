@@ -86,5 +86,8 @@
   "coloredGrid": "Цветная сетка",
   "seconds": "сек",
   "hours": "ч",
-  "days": "дн"
+  "days": "дн",
+  "deleteAccount": "Удалить аккаунт",
+  "deleteAccountConfirm": "Удалить аккаунт?",
+  "deleteAccountWarning": "Все данные будут удалены. Это действие нельзя отменить."
 }

@@ -290,4 +290,14 @@ class SEs extends S {
 
   @override
   String get days => 'día';
+
+  @override
+  String get deleteAccount => 'Eliminar cuenta';
+
+  @override
+  String get deleteAccountConfirm => '¿Eliminar tu cuenta?';
+
+  @override
+  String get deleteAccountWarning =>
+      'Todos tus datos se eliminarán permanentemente. Esta acción no se puede deshacer.';
 }

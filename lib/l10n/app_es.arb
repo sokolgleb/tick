@@ -86,5 +86,8 @@
   "coloredGrid": "Cuadr\u00edcula con color",
   "seconds": "seg",
   "hours": "hr",
-  "days": "d\u00eda"
+  "days": "d\u00eda",
+  "deleteAccount": "Eliminar cuenta",
+  "deleteAccountConfirm": "\u00bfEliminar tu cuenta?",
+  "deleteAccountWarning": "Todos tus datos se eliminar\u00e1n permanentemente. Esta acci\u00f3n no se puede deshacer."
 }

@@ -594,6 +594,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'day'**
   String get days;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account?'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'All your data will be permanently deleted. This cannot be undone.'**
+  String get deleteAccountWarning;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -86,5 +86,8 @@
   "coloredGrid": "Renkli \u0131zgara",
   "seconds": "sn",
   "hours": "sa",
-  "days": "g\u00fcn"
+  "days": "g\u00fcn",
+  "deleteAccount": "Hesab\u0131 sil",
+  "deleteAccountConfirm": "Hesab\u0131n\u0131z silinsin mi?",
+  "deleteAccountWarning": "T\u00fcm verileriniz kal\u0131c\u0131 olarak silinecek. Bu i\u015flem geri al\u0131namaz."
 }

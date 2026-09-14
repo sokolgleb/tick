@@ -290,4 +290,14 @@ class SEn extends S {
 
   @override
   String get days => 'day';
+
+  @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountConfirm => 'Delete your account?';
+
+  @override
+  String get deleteAccountWarning =>
+      'All your data will be permanently deleted. This cannot be undone.';
 }

@@ -290,4 +290,14 @@ class STr extends S {
 
   @override
   String get days => 'gün';
+
+  @override
+  String get deleteAccount => 'Hesabı sil';
+
+  @override
+  String get deleteAccountConfirm => 'Hesabınız silinsin mi?';
+
+  @override
+  String get deleteAccountWarning =>
+      'Tüm verileriniz kalıcı olarak silinecek. Bu işlem geri alınamaz.';
 }

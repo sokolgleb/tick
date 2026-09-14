@@ -292,4 +292,14 @@ class SRu extends S {
 
   @override
   String get days => 'дн';
+
+  @override
+  String get deleteAccount => 'Удалить аккаунт';
+
+  @override
+  String get deleteAccountConfirm => 'Удалить аккаунт?';
+
+  @override
+  String get deleteAccountWarning =>
+      'Все данные будут удалены. Это действие нельзя отменить.';
 }

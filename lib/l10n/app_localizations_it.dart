@@ -290,4 +290,14 @@ class SIt extends S {
 
   @override
   String get days => 'gg';
+
+  @override
+  String get deleteAccount => 'Elimina account';
+
+  @override
+  String get deleteAccountConfirm => 'Eliminare il tuo account?';
+
+  @override
+  String get deleteAccountWarning =>
+      'Tutti i tuoi dati verranno eliminati definitivamente. Questa azione non può essere annullata.';
 }

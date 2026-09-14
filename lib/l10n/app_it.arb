@@ -86,5 +86,8 @@
   "coloredGrid": "Griglia colorata",
   "seconds": "sec",
   "hours": "ore",
-  "days": "gg"
+  "days": "gg",
+  "deleteAccount": "Elimina account",
+  "deleteAccountConfirm": "Eliminare il tuo account?",
+  "deleteAccountWarning": "Tutti i tuoi dati verranno eliminati definitivamente. Questa azione non pu\u00f2 essere annullata."
 }

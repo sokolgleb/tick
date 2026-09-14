@@ -106,11 +106,20 @@ class SettingsScreen extends ConsumerWidget {
                   onPressed: () => context.push('/auth'),
                   child: Text(l10n.linkAccount),
                 )
-              else
+              else ...[
                 OutlinedButton(
                   onPressed: () => _signOut(context, ref),
                   child: Text(l10n.signOut),
                 ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => _deleteAccount(context, ref),
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                  ),
+                  child: Text(l10n.deleteAccount),
+                ),
+              ],
 
               const SizedBox(height: 28),
 
@@ -217,6 +226,37 @@ class SettingsScreen extends ConsumerWidget {
     );
     if (confirm == true) {
       await ref.read(authRepositoryProvider).signOut();
+      await ref.read(authRepositoryProvider).signInAnonymously();
+      ref.invalidate(activitiesProvider);
+      ref.invalidate(todayTotalsProvider);
+      if (context.mounted) context.go('/');
+    }
+  }
+
+  void _deleteAccount(BuildContext context, WidgetRef ref) async {
+    final l10n = S.of(context)!;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.deleteAccountConfirm),
+        content: Text(l10n.deleteAccountWarning),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await ref.read(authRepositoryProvider).deleteAccount();
       await ref.read(authRepositoryProvider).signInAnonymously();
       ref.invalidate(activitiesProvider);
       ref.invalidate(todayTotalsProvider);

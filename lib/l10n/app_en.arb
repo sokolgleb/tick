@@ -137,5 +137,8 @@
   "coloredGrid": "Colored grid",
   "seconds": "sec",
   "hours": "hr",
-  "days": "day"
+  "days": "day",
+  "deleteAccount": "Delete account",
+  "deleteAccountConfirm": "Delete your account?",
+  "deleteAccountWarning": "All your data will be permanently deleted. This cannot be undone."
 }

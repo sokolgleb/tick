@@ -23,7 +23,7 @@ class AuthRepository {
         defaultTargetPlatform == TargetPlatform.linux) {
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? null : 'com.sokolgleb.tick://login-callback',
+        redirectTo: kIsWeb ? Uri.base.origin : 'com.sokolgleb.tick://login-callback',
       );
     } else {
       await _nativeGoogleSignIn();
@@ -93,6 +93,10 @@ class AuthRepository {
 
   Future<void> deleteAnonymousData() async {
     await _client.rpc('delete_anonymous_data');
+  }
+
+  Future<void> deleteAccount() async {
+    await _client.rpc('delete_user_account');
   }
 
   Future<void> signOut() async {
