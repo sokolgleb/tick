@@ -105,21 +105,7 @@ class SettingsScreen extends ConsumerWidget {
                 FilledButton(
                   onPressed: () => context.push('/auth'),
                   child: Text(l10n.linkAccount),
-                )
-              else ...[
-                OutlinedButton(
-                  onPressed: () => _signOut(context, ref),
-                  child: Text(l10n.signOut),
                 ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => _deleteAccount(context, ref),
-                  style: TextButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                  ),
-                  child: Text(l10n.deleteAccount),
-                ),
-              ],
 
               const SizedBox(height: 28),
 
@@ -199,6 +185,22 @@ class SettingsScreen extends ConsumerWidget {
                   );
                 }).toList(),
               ),
+
+              if (!isAnonymous) ...[
+                const SizedBox(height: 28),
+                OutlinedButton(
+                  onPressed: () => _signOut(context, ref),
+                  child: Text(l10n.signOut),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => _deleteAccount(context, ref),
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                  ),
+                  child: Text(l10n.deleteAccount),
+                ),
+              ],
             ],
           ),
         ),
